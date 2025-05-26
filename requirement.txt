@@ -1,0 +1,9 @@
+flask-jwt-extended
+requests
+Flask-Limiter
+redis
+argon2-cffi
+pycryptodome
+flask-cor
+python-dotenv
+Flask-SQLAlchemy
