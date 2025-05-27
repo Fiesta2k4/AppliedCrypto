@@ -21,15 +21,15 @@ class LoginWindow(tk.Tk):
         super().__init__()
         
         self.title("Personal Vault - Secure Login")
-        self.geometry("450x600")
+        self.geometry("800x800")
         self.configure(bg="#f8f9fa")
-        self.resizable(False, False)
+        self.resizable(True, True)
         
         # Center window
         self.update_idletasks()
         x = (self.winfo_screenwidth() // 2) - (450 // 2)
         y = (self.winfo_screenheight() // 2) - (600 // 2)
-        self.geometry(f"450x600+{x}+{y}")
+        self.geometry(f"800x800+{x}+{y}")
         
         # Fonts
         self.title_font = font.Font(family="Segoe UI", size=24, weight="bold")

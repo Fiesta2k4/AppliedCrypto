@@ -4,6 +4,6 @@ Flask-Limiter
 redis
 argon2-cffi
 pycryptodome
-flask-cor
+flask-cors
 python-dotenv
 Flask-SQLAlchemy
