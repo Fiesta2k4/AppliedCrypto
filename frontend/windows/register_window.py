@@ -20,17 +20,17 @@ class RegisterWindow(tk.Toplevel):
         self.parent = parent
         
         self.title("Personal Vault - Create Account")
-        self.geometry("500x750")
+        self.geometry("600x600")
         self.configure(bg="#f8f9fa")
         self.resizable(True, True)
-        self.transient(parent)
-        self.grab_set()
+        #self.transient(parent)
+        #self.grab_set()
         
         # Center window
         self.update_idletasks()
         x = parent.winfo_x() + (parent.winfo_width() // 2) - (500 // 2)
         y = parent.winfo_y() + (parent.winfo_height() // 2) - (750 // 2)
-        self.geometry(f"500x750+{x}+{y}")
+        self.geometry(f"900x900+{x}+{y}")
         
         # Fonts
         self.title_font = font.Font(family="Segoe UI", size=20, weight="bold")
