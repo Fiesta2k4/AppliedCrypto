@@ -87,46 +87,104 @@ class BackupWindow(tk.Toplevel):
         self.status_label.pack(pady=10)
 
     def create_backup(self):
-        """Create new backup"""
+        """Create backup of vault data"""
         try:
+            print("🔍 === CREATE BACKUP ===")
+            
             if not self.api_service:
                 messagebox.showerror("Error", "API service not available")
                 return
             
-            self.status_label.config(text="Creating backup...", fg="#007bff")
+            # Get backup name from user
+            from tkinter import simpledialog
+            from datetime import datetime
             
-            # Get vault data
-            vault_data = self.api_service.get_vault_entries()
+            default_name = f"Backup {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+            backup_name = simpledialog.askstring(
+                "Backup Name", 
+                "Enter backup name:",
+                initialvalue=default_name
+            )
             
-            if not vault_data or 'entries' not in vault_data:
-                messagebox.showerror("Error", "No vault data to backup")
-                self.status_label.config(text="No data to backup", fg="#dc3545")
+            if not backup_name:
+                print("🔍 Backup creation cancelled by user")
                 return
             
-            # Create backup
+            print(f"🔍 Creating backup with name: '{backup_name}'")
+            
+            # Get all vault entries
+            print("🔍 Getting vault entries...")
+            vault_response = self.api_service.get_vault_entries()
+            
+            if not vault_response or 'entries' not in vault_response:
+                print("❌ Failed to get vault entries")
+                messagebox.showerror("Error", "Failed to get vault entries for backup")
+                return
+            
+            entries = vault_response['entries']
+            print(f"🔍 Found {len(entries)} vault entries")
+            
+            # Create backup data structure
             backup_data = {
                 "version": "1.0",
                 "backup_type": "full_vault",
                 "created_at": datetime.now().isoformat(),
-                "entry_count": vault_data['count'],
-                "encrypted_entries": vault_data['entries']
+                "entry_count": len(entries),
+                "encrypted_entries": entries
             }
             
-            result = self.api_service.create_backup(backup_data)
+            print(f"🔍 Backup data structure created")
+            print(f"   Version: {backup_data['version']}")
+            print(f"   Type: {backup_data['backup_type']}")
+            print(f"   Entries: {backup_data['entry_count']}")
             
-            if result and 'backup_id' in result:
-                self.status_label.config(text="✅ Backup created!", fg="#28a745")
-                messagebox.showinfo("Success", 
-                                  f"Backup created successfully!\n\n"
-                                  f"Name: {result.get('name', 'Unnamed')}\n"
-                                  f"ID: {result['backup_id']}")
-            else:
-                error_msg = result.get('error', 'Unknown error') if result else 'Backup failed'
-                self.status_label.config(text=f"❌ {error_msg}", fg="#dc3545")
-                messagebox.showerror("Error", f"Backup failed:\n\n{error_msg}")
+            # Disable create button
+            if hasattr(self, 'create_btn'):
+                self.create_btn.config(state="disabled", text="Creating...")
+                self.update()
+            
+            # Create backup via API
+            result = self.api_service.create_backup(backup_data, backup_name)
+            
+            # Re-enable create button
+            if hasattr(self, 'create_btn'):
+                self.create_btn.config(state="normal", text="📦 Create Backup")
+            
+            print(f"🔍 Backup creation result: {result}")
+            
+            if result and result.get('success'):
+                backup_id = result.get('backup_id', 'unknown')
+                size_bytes = result.get('size_bytes', 0)
+                size_mb = round(size_bytes / (1024 * 1024), 2) if size_bytes > 0 else 0
                 
+                message = (
+                    f"Backup created successfully!\n\n"
+                    f"Name: {backup_name}\n"
+                    f"ID: {backup_id}\n"
+                    f"Entries: {len(entries)}\n"
+                    f"Size: {size_mb} MB"
+                )
+                
+                messagebox.showinfo("Backup Created", message)
+                print(f"✅ Backup created successfully: {backup_id}")
+                
+                # Refresh backup list
+                self.load_backups()
+                
+            else:
+                error_msg = result.get('error', 'Unknown error') if result else 'Network error'
+                print(f"❌ Backup creation failed: {error_msg}")
+                messagebox.showerror("Backup Failed", f"Failed to create backup:\n\n{error_msg}")
+        
         except Exception as e:
-            self.status_label.config(text=f"❌ Error: {str(e)}", fg="#dc3545")
+            print(f"❌ Create backup error: {e}")
+            import traceback
+            traceback.print_exc()
+            
+            # Re-enable create button
+            if hasattr(self, 'create_btn'):
+                self.create_btn.config(state="normal", text="📦 Create Backup")
+            
             messagebox.showerror("Error", f"Backup creation failed:\n\n{str(e)}")
 
     def import_backup(self):

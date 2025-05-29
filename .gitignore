@@ -1,69 +1,64 @@
-# Ignore Python virtualenv
-venv/
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
 
-# Virtual Environment
-.env
-.venv
+# Database files
+vault.db
+*.db
+*.sqlite
+*.sqlite3
+
+# Virtual environment
+.venv/
+venv/
 env/
+ENV/
 
-
-# IDE
+# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
 
 # Environment variables
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*.local
 
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-vault.db
-backup.db
-test.db
 # Backup files
 *.bak
 *.backup
-backup/
-backups/
+*.tmp
 
-
-# Test files
-test_*.db
-debug_*.py
-temp_*.py
-
-# Coverage reports
-htmlcov/
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-
-# PyCharm
-.idea/
-
-# Project specific
-# Add any project-specific files here
-debug_*
-test_complete_*
-reset_*
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST

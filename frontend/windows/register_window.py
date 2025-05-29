@@ -22,7 +22,7 @@ class RegisterWindow(tk.Toplevel):
         self.title("Personal Vault - Create Account")
         self.geometry("500x750")
         self.configure(bg="#f8f9fa")
-        self.resizable(False, False)
+        self.resizable(True, True)
         self.transient(parent)
         self.grab_set()
         

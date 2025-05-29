@@ -1,0 +1,21 @@
+{
+  "version": "1.0",
+  "backup_type": "full_vault",
+  "created_at": "2025-05-29T19:36:15.387798",
+  "entry_count": 1,
+  "encrypted_entries": [
+    {
+      "ciphertext": "tQZGZuYqFo6xrObZT+Uee88xVlm6HbTCLd8Xw0U+ERMaKpqf0hoi9oojBxgds1/Mw9AZ08G/A2R6+Y2YorFyEsT57dGtkGxnD8kiXRxRco2UB/YPX7JoInJ3WVl9SE7p+byoyzv+afjzFVs8cA==",
+      "created_at": "2025-05-29 12:36:00",
+      "id": "e9324a52ea3b72fd4802f407b1d8ddba",
+      "iv": "s4ENr29/gMdsxUbm",
+      "metadata": {
+        "name": "dsadas",
+        "type": "password"
+      },
+      "tag": "5M89jKIaNWMVdnHNY7UKfA==",
+      "updated_at": "2025-05-29 12:36:00",
+      "user_id": "565ae822c3c57e941bdfd6c2a954f89c"
+    }
+  ]
+}
