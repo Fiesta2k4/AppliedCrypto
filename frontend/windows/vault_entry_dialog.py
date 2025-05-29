@@ -1,3 +1,6 @@
+import tkinter as tk
+from tkinter import ttk, messagebox
+
 class VaultEntryDialog(tk.Toplevel):
     def __init__(self, parent, api_service):
         super().__init__(parent)

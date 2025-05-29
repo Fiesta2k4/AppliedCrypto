@@ -80,3 +80,29 @@ def get_stats():
         
     except Exception as e:
         return jsonify({"error": f"Failed to get stats: {str(e)}"}), 500
+
+@vault_bp.route('/<entry_id>', methods=['DELETE'])
+@jwt_required()
+def delete_entry(entry_id):
+    """Delete vault entry"""
+    try:
+        current_user_id = get_jwt_identity()
+        
+        print(f"🗑️ Deleting vault entry {entry_id} for user: {current_user_id}")
+        
+        # Verify entry belongs to user and delete
+        success = VaultDB.delete_entry(entry_id, current_user_id)
+        
+        if success:
+            print(f"✅ Entry {entry_id} deleted successfully")
+            return jsonify({
+                "message": "Entry deleted successfully",
+                "success": True
+            }), 200
+        else:
+            return jsonify({"error": "Entry not found or access denied"}), 404
+        
+    except Exception as e:
+        print(f"❌ Delete entry error: {e}")
+        traceback.print_exc()
+        return jsonify({"error": f"Failed to delete entry: {str(e)}"}), 500

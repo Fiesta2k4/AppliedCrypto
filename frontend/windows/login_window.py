@@ -16,10 +16,21 @@ except ImportError as e:
     ApiService = None
     MainWindow = None
 
-class LoginWindow(tk.Tk):
-    def __init__(self):
-        super().__init__()
+class LoginWindow(tk.Toplevel):
+    def __init__(self, master):
+        super().__init__(master)
         
+        print("🔍 === LOGIN WINDOW INIT ===")
+        
+        # ✅ Create API service properly
+        if ApiService:
+            self.api_service = ApiService()
+            print(f"✅ API service created in LoginWindow: {self.api_service}")
+        else:
+            self.api_service = None
+            print("❌ ApiService class not available")
+        
+        # Window settings
         self.title("Personal Vault - Secure Login")
         self.geometry("800x800")
         self.configure(bg="#f8f9fa")
@@ -264,89 +275,96 @@ class LoginWindow(tk.Tk):
         return True
     
     def login(self):
-        """Handle login"""
-        if not self.validate_input():
-            return
-        
-        email = self.email_entry.get().strip()
-        password = self.password_entry.get()
-        
-        # Disable UI
-        self.login_btn.config(state="disabled", text="🔄 Signing In...")
-        self.register_btn.config(state="disabled")
-        self.email_entry.config(state="disabled")
-        self.password_entry.config(state="disabled")
-        
-        self.show_status("Authenticating with secure server...", "#17a2b8")
-        
-        # Use thread to avoid blocking UI
-        executor = ThreadPoolExecutor(max_workers=1)
-        future = executor.submit(self._do_login, email, password)
-        
-        def check_result():
-            if future.done():
-                self._reset_ui()
-                try:
-                    result = future.result()
-                    if result:
-                        self._handle_login_result(email, result)
-                except Exception as e:
-                    self._on_error(f"Login error: {str(e)}")
-                finally:
-                    executor.shutdown()
-            else:
-                self.after(100, check_result)
-        
-        self.after(100, check_result)
-    
-    def _do_login(self, email, password):
-        """Perform login in background thread"""
-        if not ApiService:
-            raise Exception("API service not available")
-        
-        api_service = ApiService()
-        result = api_service.login(email, password)
-        
-        if result and 'access_token' in result:
-            return {'api_service': api_service, 'result': result}
-        else:
-            error_msg = result.get('error', 'Invalid credentials') if result else 'Login failed'
-            raise Exception(error_msg)
-    
-    def _handle_login_result(self, email, login_data):
-        """Handle successful login"""
-        api_service = login_data['api_service']
-        result = login_data['result']
-        
-        self.show_status("✅ Login successful!", "#28a745")
-        
-        # Show success message
-        user_info = result.get('user', {})
-        user_id = user_info.get('id', 'Unknown')
-        
-        self.after(500, lambda: self._open_main_window(email, api_service, user_info))
-    
-    def _open_main_window(self, email, api_service, user_info):
-        """Open main application window"""
+        """Handle login attempt"""
         try:
+            print("🔍 === LOGIN ATTEMPT ===")
+            
+            email = self.email_entry.get().strip()
+            password = self.password_entry.get()
+            
+            if not email or not password:
+                messagebox.showerror("Error", "Please enter both email and password")
+                return
+            
+            print(f"🔍 Login attempt for: {email}")
+            print(f"🔍 API service before login: {self.api_service}")
+            print(f"🔍 API service token before: {getattr(self.api_service, 'access_token', 'NOT FOUND')}")
+            
+            # Disable login button
+            self.login_btn.config(state="disabled", text="Logging in...")
+            self.update()
+            
+            # Attempt login
+            login_result = self.api_service.login(email, password)
+            
+            print(f"🔍 Login result: {login_result}")
+            print(f"🔍 API service token after: {getattr(self.api_service, 'access_token', 'NOT FOUND')}")
+            
+            # Re-enable login button
+            self.login_btn.config(state="normal", text="🔐 Login")
+            
+            # ✅ FIX: Check for access_token instead of 'success' field
+            if login_result and 'access_token' in login_result:
+                print("✅ Login successful!")
+                
+                # Test API with token immediately
+                print("🔍 Testing API with new token...")
+                test_result = self.api_service.get_profile()
+                print(f"🔍 Profile test result: {test_result}")
+                
+                # Handle success
+                self.handle_login_success(login_result)
+            else:
+                error_msg = login_result.get('error', 'Login failed') if login_result else 'Network error'
+                print(f"❌ Login failed: {error_msg}")
+                messagebox.showerror("Login Failed", f"Login failed:\n\n{error_msg}")
+                
+        except Exception as e:
+            print(f"❌ Login error: {e}")
+            import traceback
+            traceback.print_exc()
+            self.login_btn.config(state="normal", text="🔐 Login")
+            messagebox.showerror("Error", f"Login error:\n\n{str(e)}")
+
+    def handle_login_success(self, login_response):
+        """Handle successful login"""
+        try:
+            print("🔍 === HANDLE LOGIN SUCCESS ===")
+            print(f"🔍 Login response: {login_response}")
+            print(f"🔍 API service: {self.api_service}")
+            print(f"🔍 API service token: {getattr(self.api_service, 'access_token', 'NOT FOUND')}")
+            
             # Hide login window
             self.withdraw()
             
-            if MainWindow:
-                main_window = MainWindow(self, user_email=email, api_service=api_service)
-                
-                # Show welcome message
-                messagebox.showinfo("Welcome Back!", 
-                                  f"Welcome to Personal Vault!\n\n"
-                                  f"Email: {email}\n"
-                                  f"User ID: {user_info.get('id', 'Unknown')[:8]}...\n\n"
-                                  f"Your encrypted vault is ready to use.")
-            else:
-                messagebox.showerror("Error", "Main window not available")
-                self.deiconify()
-                
+            # Get user data
+            user_data = login_response.get('user', {})
+            user_email = user_data.get('email', 'Unknown')
+            
+            print(f"🔍 User email: {user_email}")
+            print(f"🔍 Creating MainWindow with API service...")
+            
+            # CRITICAL: Pass the SAME API service instance that has the token!
+            from .main_window import MainWindow
+            main_window = MainWindow(
+                master=self.master,
+                user_email=user_email,
+                api_service=self.api_service  # ← This MUST have the access token
+            )
+            
+            print(f"✅ MainWindow created successfully")
+            print(f"🔍 MainWindow API service: {getattr(main_window, 'api_service', 'NOT FOUND')}")
+            print(f"🔍 MainWindow API token: {getattr(main_window.api_service, 'access_token', 'NOT FOUND') if hasattr(main_window, 'api_service') else 'NO API SERVICE'}")
+            
+            # Wait for main window to close, then show login again
+            self.wait_window(main_window)
+            self.deiconify()
+            
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to open main window: {str(e)}")
+            print(f"❌ Login success handler error: {e}")
+            import traceback
+            traceback.print_exc()
+            messagebox.showerror("Error", f"Failed to open main window:\n\n{str(e)}")
             self.deiconify()
     
     def _on_error(self, error_message):
