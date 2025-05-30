@@ -596,7 +596,7 @@ class AddAccountDialog(tk.Toplevel):
         self.title("➕ Add 2FA Account")
         self.geometry("500x600")
         self.configure(bg="#ffffff")
-        self.resizable(False, False)
+        self.resizable(True, True)
         self.transient(parent)
         self.grab_set()
         
@@ -851,7 +851,7 @@ class QRScanDialog(tk.Toplevel):
         self.title("📷 Scan QR Code")
         self.geometry("450x300")
         self.configure(bg="#ffffff")
-        self.resizable(False, False)
+        self.resizable(True, True)
         self.transient(parent)
         self.grab_set()
         

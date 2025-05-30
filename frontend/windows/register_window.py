@@ -371,12 +371,16 @@ class RegisterWindow(tk.Toplevel):
         password = self.password_entry.get()
         
         # Disable UI
-        self.register_btn.config(state="disabled", text="🔄 Creating Account...")
-        self.email_entry.config(state="disabled")
-        self.password_entry.config(state="disabled")
-        self.confirm_password_entry.config(state="disabled")
-        
-        self.show_status("Creating your secure vault...", "#17a2b8")
+        try:
+            self.register_btn.config(state="disabled", text="🔄 Creating Account...")
+            self.email_entry.config(state="disabled")
+            self.password_entry.config(state="disabled")
+            self.confirm_password_entry.config(state="disabled")
+            
+            self.show_status("Creating your secure vault...", "#17a2b8")
+        except tk.TclError:
+            # Window destroyed during UI update
+            return
         
         try:
             if not ApiService:
@@ -385,6 +389,10 @@ class RegisterWindow(tk.Toplevel):
             
             api_service = ApiService()
             result = api_service.register(email, password)
+            
+            # Check if window still exists before showing results
+            if not self.winfo_exists():
+                return
             
             if result and 'user' in result:
                 # Registration successful
@@ -407,29 +415,46 @@ class RegisterWindow(tk.Toplevel):
                 messagebox.showerror("Registration Failed", 
                                    f"Account creation failed:\n\n{error_msg}\n\n"
                                    f"Please try again or contact support.")
-        
-        except Exception as e:
-            self.show_status(f"❌ Error: {str(e)}", "#dc3545")
-            messagebox.showerror("Error", f"Registration failed:\n\n{str(e)}")
-        
-        finally:
-            # Re-enable UI
-            self._reset_ui()
     
+        except Exception as e:
+            # Check if window still exists before showing error
+            if self.winfo_exists():
+                self.show_status(f"❌ Error: {str(e)}", "#dc3545")
+                messagebox.showerror("Error", f"Registration failed:\n\n{str(e)}")
+    
+        finally:
+            # Re-enable UI only if window still exists
+            self._reset_ui()
+
     def _reset_ui(self):
         """Reset UI to normal state"""
-        self.register_btn.config(state="normal", text="🔐 Create Account")
-        self.email_entry.config(state="normal")
-        self.password_entry.config(state="normal")
-        self.confirm_password_entry.config(state="normal")
-    
-    def go_back(self, event=None):
-        """Return to login window"""
-        self.destroy()
-    
+        try:
+            # Check if window still exists before trying to update widgets
+            if self.winfo_exists():
+                self.register_btn.config(state="normal", text="🔐 Create Account")
+                self.email_entry.config(state="normal")
+                self.password_entry.config(state="normal")
+                self.confirm_password_entry.config(state="normal")
+        except tk.TclError:
+            # Window has been destroyed, ignore the error
+            pass
+
     def show_status(self, message, color="#333"):
         """Show status message"""
-        self.status_label.config(text=message, fg=color)
+        try:
+            if self.winfo_exists():
+                self.status_label.config(text=message, fg=color)
+        except tk.TclError:
+            # Window destroyed, ignore
+            pass
+
+    def go_back(self, event=None):
+        """Return to login window"""
+        try:
+            self.destroy()
+        except tk.TclError:
+            # Already destroyed
+            pass
 
 if __name__ == "__main__":
     # Test the register window
